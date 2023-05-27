@@ -95,17 +95,46 @@ namespace Packages.Neovim.Editor
 
 		public bool OpenProject(string path, int line, int column)
 		{
-            ProcessStartInfo startInfo = new ProcessStartInfo
+            if (filePath != "" && (!SupportsExtension(filePath) || !File.Exists(filePath))) // Assets - Open C# Project passes empty path here
             {
-              Arguments = $"\"+normal {line}G{column}|\" {path}",
-              FileName = launcherPath,
-              UseShellExecute = false,
-              RedirectStandardOutput = true,
-            };
+                return false;
+            }
 
-            Process.Start(startInfo);
+            if (line == -1)
+                line = 1;
+            if (column == -1)
+                column = 0;
+
+            var arguments = $"--servername ~/.cache/nvimsocket -c 'call cursor({line}, {column})' {filePath}";
+            Debug.Log(arguments);
+
+            ExecuteBashCommand("nvr " + arguments);
+
+            // Focus Alacritty:
+            var alacrittyProcess = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "open",
+                             Arguments = $"/Applications/Alacritty.app/",
+                             UseShellExecute = true,
+                }
+            };
+            alacrittyProcess.Start();
 
             return true;
+
+            // ProcessStartInfo startInfo = new ProcessStartInfo
+            // {
+            //   Arguments = $"\"+normal {line}G{column}|\" {path}",
+            //   FileName = launcherPath,
+            //   UseShellExecute = false,
+            //   RedirectStandardOutput = true,
+            // };
+            //
+            // Process.Start(startInfo);
+            //
+            // return true;
         }
 
         public bool TryGetInstallationForPath(string editorPath, out CodeEditor.Installation installation)
@@ -113,5 +142,30 @@ namespace Packages.Neovim.Editor
             installation = Installations.FirstOrDefault(install => install.Path == editorPath);
             return !string.IsNullOrEmpty(installation.Name);
 		}
+
+        static string ExecuteBashCommand(string command)
+        {
+            // according to: https://stackoverflow.com/a/15262019/637142
+            // thans to this we will pass everything as one command
+            command = command.Replace("\"", "\"\"");
+            Debug.Log(command);
+
+            var proc = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/bash",
+                             Arguments = "-c \"" + command + "\"",
+                             UseShellExecute = false,
+                             RedirectStandardOutput = true,
+                             CreateNoWindow = true
+                }
+            };
+
+            proc.Start();
+            proc.WaitForExit();
+
+            return proc.StandardOutput.ReadToEnd();
+        }
 	}
 }
