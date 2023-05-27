@@ -95,7 +95,7 @@ namespace Packages.Neovim.Editor
 
 		public bool OpenProject(string path, int line, int column)
 		{
-            if (filePath != "" && (!SupportsExtension(filePath) || !File.Exists(filePath))) // Assets - Open C# Project passes empty path here
+            if (path != "" && (!SupportsExtension(path) || !File.Exists(path))) // Assets - Open C# Project passes empty path here
             {
                 return false;
             }
@@ -105,7 +105,7 @@ namespace Packages.Neovim.Editor
             if (column == -1)
                 column = 0;
 
-            var arguments = $"--servername ~/.cache/nvimsocket -c 'call cursor({line}, {column})' {filePath}";
+            var arguments = $"--servername ~/.cache/nvimsocket -c 'call cursor({line}, {column})' {path}";
             Debug.Log(arguments);
 
             ExecuteBashCommand("nvr " + arguments);
