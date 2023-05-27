@@ -95,18 +95,12 @@ namespace Packages.Neovim.Editor
 
 		public bool OpenProject(string path, int line, int column)
 		{
-            if (path != "" && (!SupportsExtension(path) || !File.Exists(path))) // Assets - Open C# Project passes empty path here
-            {
-                return false;
-            }
-
             if (line == -1)
                 line = 1;
             if (column == -1)
                 column = 0;
 
             var arguments = $"--servername ~/.cache/nvimsocket -c 'call cursor({line}, {column})' {path}";
-            Debug.Log(arguments);
 
             ExecuteBashCommand("nvr " + arguments);
 
@@ -148,7 +142,6 @@ namespace Packages.Neovim.Editor
             // according to: https://stackoverflow.com/a/15262019/637142
             // thans to this we will pass everything as one command
             command = command.Replace("\"", "\"\"");
-            Debug.Log(command);
 
             var proc = new Process
             {
